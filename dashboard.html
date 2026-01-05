@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard E-commerce - Projet 1</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f7fa;
+            color: #212529;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: #ffffff;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+        header h1 {
+            color: #212529;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .kpi-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .kpi-card .label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+        .kpi-card .value {
+            font-size: 28px;
+            font-weight: 600;
+            color: #212529;
+        }
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .chart-card h3 {
+            color: #212529;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .chart-container {
+            height: 350px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        th {
+            background: #f8f9fa;
+            color: #495057;
+            font-weight: 600;
+        }
+        td {
+            color: #212529;
+        }
+        .filters {
+            background: #ffffff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .filters label {
+            color: #495057;
+            font-weight: 500;
+        }
+        .filters select {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #212529;
+            background: #ffffff;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        @media (max-width: 1200px) {
+            .kpi-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (max-width: 768px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Dashboard E-commerce</h1>
+    </header>
+
+    <div class="container">
+        <div class="filters">
+            <label for="category-filter">Categorie:</label>
+            <select id="category-filter" onchange="filterData()">
+                <option value="all">Toutes</option>
+            </select>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="label">Chiffre d'Affaires</div>
+                <div class="value" id="kpi-revenue">-</div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">Commandes</div>
+                <div class="value" id="kpi-orders">-</div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">Clients</div>
+                <div class="value" id="kpi-customers">-</div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">Panier Moyen</div>
+                <div class="value" id="kpi-avg-basket">-</div>
+            </div>
+            <div class="kpi-card">
+                <div class="label">Articles/Commande</div>
+                <div class="value" id="kpi-avg-items">-</div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-card">
+                <h3>Evolution du CA Mensuel</h3>
+                <div class="chart-container" id="chart-revenue"></div>
+            </div>
+            <div class="chart-card">
+                <h3>CA par Categorie</h3>
+                <div class="chart-container" id="chart-categories"></div>
+            </div>
+        </div>
+
+        <div class="charts-row">
+            <div class="chart-card">
+                <h3>Top 10 Produits</h3>
+                <div class="chart-container" id="chart-products"></div>
+            </div>
+            <div class="chart-card">
+                <h3>CA par Jour de la Semaine</h3>
+                <div class="chart-container" id="chart-weekday"></div>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3>Transactions Recentes</h3>
+            <table id="recent-transactions">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Transaction</th>
+                        <th>Client</th>
+                        <th>Produit</th>
+                        <th>Quantite</th>
+                        <th>Montant</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer>
+        Projet 1 - Dashboard E-commerce | AddYnov
+    </footer>
+
+    <script>
+        let allData = [];
+        let filteredData = [];
+
+        const chartColors = {
+            primary: '#0066cc',
+            secondary: '#28a745',
+            danger: '#dc3545',
+            warning: '#ffc107',
+            info: '#17a2b8',
+            gray: '#6c757d'
+        };
+
+        const colorPalette = ['#0066cc', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6c757d'];
+
+        // Load data
+        async function loadData() {
+            try {
+                const response = await fetch('data/transactions.csv');
+                const csvText = await response.text();
+
+                Papa.parse(csvText, {
+                    header: true,
+                    dynamicTyping: true,
+                    complete: function(results) {
+                        allData = results.data.filter(row => row.transaction_id);
+                        initFilters();
+                        filterData();
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.querySelector('.container').innerHTML = '<p style="color: #dc3545; padding: 20px;">Erreur: Executez d\'abord python src/generate_data.py pour generer les donnees.</p>';
+            }
+        }
+
+        function initFilters() {
+            const categories = [...new Set(allData.map(d => d.category))].sort();
+            const select = document.getElementById('category-filter');
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                select.appendChild(option);
+            });
+        }
+
+        function filterData() {
+            const categoryFilter = document.getElementById('category-filter').value;
+
+            filteredData = allData.filter(row => {
+                if (categoryFilter !== 'all' && row.category !== categoryFilter) return false;
+                return true;
+            });
+
+            updateKPIs();
+            updateCharts();
+            updateTable();
+        }
+
+        function updateKPIs() {
+            const revenue = filteredData.reduce((sum, d) => sum + (d.total_amount || 0), 0);
+            const orders = filteredData.length;
+            const customers = new Set(filteredData.map(d => d.customer_id)).size;
+            const avgBasket = orders > 0 ? revenue / orders : 0;
+            const avgItems = orders > 0 ? filteredData.reduce((sum, d) => sum + (d.quantity || 0), 0) / orders : 0;
+
+            document.getElementById('kpi-revenue').textContent = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(revenue);
+            document.getElementById('kpi-orders').textContent = new Intl.NumberFormat('fr-FR').format(orders);
+            document.getElementById('kpi-customers').textContent = new Intl.NumberFormat('fr-FR').format(customers);
+            document.getElementById('kpi-avg-basket').textContent = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(avgBasket);
+            document.getElementById('kpi-avg-items').textContent = avgItems.toFixed(1);
+        }
+
+        function updateCharts() {
+            // Monthly revenue chart
+            const monthlyData = {};
+            filteredData.forEach(d => {
+                const month = d.date ? d.date.substring(0, 7) : 'Unknown';
+                monthlyData[month] = (monthlyData[month] || 0) + (d.total_amount || 0);
+            });
+            const months = Object.keys(monthlyData).sort();
+
+            Plotly.newPlot('chart-revenue', [{
+                x: months,
+                y: months.map(m => monthlyData[m]),
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: chartColors.primary, width: 2 },
+                marker: { size: 8 }
+            }], {
+                margin: { t: 10, r: 20, b: 40, l: 60 },
+                xaxis: { gridcolor: '#e9ecef' },
+                yaxis: { gridcolor: '#e9ecef', tickformat: ',.0f' },
+                paper_bgcolor: '#ffffff',
+                plot_bgcolor: '#ffffff',
+                font: { color: '#212529' }
+            }, { responsive: true });
+
+            // Category pie chart
+            const categoryData = {};
+            filteredData.forEach(d => {
+                categoryData[d.category] = (categoryData[d.category] || 0) + (d.total_amount || 0);
+            });
+
+            Plotly.newPlot('chart-categories', [{
+                values: Object.values(categoryData),
+                labels: Object.keys(categoryData),
+                type: 'pie',
+                hole: 0.4,
+                marker: { colors: colorPalette },
+                textfont: { color: '#ffffff' }
+            }], {
+                margin: { t: 10, r: 10, b: 10, l: 10 },
+                paper_bgcolor: '#ffffff',
+                font: { color: '#212529' },
+                showlegend: true,
+                legend: { orientation: 'v', x: 1, y: 0.5 }
+            }, { responsive: true });
+
+            // Top products
+            const productData = {};
+            filteredData.forEach(d => {
+                productData[d.product_name] = (productData[d.product_name] || 0) + (d.total_amount || 0);
+            });
+            const topProducts = Object.entries(productData)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            Plotly.newPlot('chart-products', [{
+                y: topProducts.map(p => p[0]).reverse(),
+                x: topProducts.map(p => p[1]).reverse(),
+                type: 'bar',
+                orientation: 'h',
+                marker: { color: chartColors.primary }
+            }], {
+                margin: { t: 10, r: 20, b: 40, l: 150 },
+                xaxis: { gridcolor: '#e9ecef', tickformat: ',.0f' },
+                yaxis: { gridcolor: '#e9ecef' },
+                paper_bgcolor: '#ffffff',
+                plot_bgcolor: '#ffffff',
+                font: { color: '#212529' }
+            }, { responsive: true });
+
+            // Weekday chart
+            const weekdayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const weekdayLabels = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+            const weekdayData = {};
+            weekdayOrder.forEach(d => weekdayData[d] = 0);
+
+            filteredData.forEach(d => {
+                if (d.date) {
+                    const date = new Date(d.date);
+                    const weekday = weekdayOrder[date.getDay() === 0 ? 6 : date.getDay() - 1];
+                    weekdayData[weekday] += d.total_amount || 0;
+                }
+            });
+
+            Plotly.newPlot('chart-weekday', [{
+                x: weekdayLabels,
+                y: weekdayOrder.map(d => weekdayData[d]),
+                type: 'bar',
+                marker: { color: chartColors.secondary }
+            }], {
+                margin: { t: 10, r: 20, b: 40, l: 60 },
+                xaxis: { gridcolor: '#e9ecef' },
+                yaxis: { gridcolor: '#e9ecef', tickformat: ',.0f' },
+                paper_bgcolor: '#ffffff',
+                plot_bgcolor: '#ffffff',
+                font: { color: '#212529' }
+            }, { responsive: true });
+        }
+
+        function updateTable() {
+            const tbody = document.querySelector('#recent-transactions tbody');
+            const recent = [...filteredData]
+                .filter(d => d.date)
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice(0, 15);
+
+            tbody.innerHTML = recent.map(d => `
+                <tr>
+                    <td>${d.date ? d.date.substring(0, 16).replace('T', ' ') : '-'}</td>
+                    <td>${d.transaction_id || '-'}</td>
+                    <td>${d.customer_id || '-'}</td>
+                    <td>${d.product_name || '-'}</td>
+                    <td>${d.quantity || 0}</td>
+                    <td>${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(d.total_amount || 0)}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Initialize
+        loadData();
+    </script>
+</body>
+</html>
