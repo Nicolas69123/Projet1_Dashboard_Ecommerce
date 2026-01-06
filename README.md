@@ -1,95 +1,101 @@
-# 📊 Projet 1 : Dashboard KPIs E-commerce
+# Projet 1 : Dashboard KPIs E-commerce
 
-## 🎯 Contexte & Problématique
+**Demo en ligne :** https://nicolas69123.github.io/Projet1_Dashboard_Ecommerce/
 
-**Situation initiale :** Une startup e-commerce manque de visibilité sur ses performances. Excel devient inadéquat face à 500k+ transactions annuelles.
+---
 
-**Besoin métier :** Créer un dashboard professionnel avec KPIs temps réel pour le CEO et l'équipe marketing.
+## Contexte & Problematique
 
-## 📋 Objectifs
+**Situation initiale :** Une startup e-commerce manque de visibilite sur ses performances. Excel devient inadequat face a 500k+ transactions annuelles.
 
-- ✅ Implémenter un tableau de bord Power BI professionnel
-- ✅ Fournir une visibilité temps réel sur les KPIs
-- ✅ Remplacer Excel par une solution scalable
+**Besoin metier :** Creer un dashboard professionnel avec KPIs temps reel pour le CEO et l'equipe marketing.
 
-## 📊 Données Disponibles
+## Objectifs
 
-| Élément | Détail |
+- Implementer un tableau de bord Power BI professionnel
+- Fournir une visibilite temps reel sur les KPIs
+- Remplacer Excel par une solution scalable
+
+## Donnees Disponibles
+
+| Element | Detail |
 |---------|--------|
-| **Source** | Online Retail Dataset (UCI) + données générées |
+| **Source** | Online Retail Dataset (UCI) + donnees generees |
 | **Volume** | 541,909 transactions sur 12 mois |
-| **Enrichissement** | Données récentes générées via Faker Python |
+| **Enrichissement** | Donnees recentes generees via Faker Python |
 
-**Champs clés :** ID transaction, date, client, produit, quantité, prix unitaire, montant total
+**Champs cles :** ID transaction, date, client, produit, quantite, prix unitaire, montant total
 
-## 🔢 KPIs à Calculer
+## KPIs a Calculer
 
-### 💰 Ventes
-- Chiffre d'affaires (jour, mois, année)
-- Évolution CA vs N-1
+### Ventes
+- Chiffre d'affaires (jour, mois, annee)
+- Evolution CA vs N-1
 - Top 10 produits
 
-### 👥 Clients
-- Nouveaux clients vs récurrents
+### Clients
+- Nouveaux clients vs recurrents
 - Panier moyen
 - Taux de conversion
-- **Analyse RFM** (Récence, Fréquence, Montant)
+- Analyse RFM (Recence, Frequence, Montant)
 
-### 📈 Cohortes
-- Rétention par mois de première commande
+### Cohortes
+- Retention par mois de premiere commande
 - LTV (Lifetime Value) par cohorte
 
-## 🛠️ Stack Technique
+## Stack Technique
 
 | Outil | Usage |
 |-------|-------|
-| Python | ETL, génération données |
-| Pandas/NumPy | Manipulation données |
-| DuckDB | Requêtes analytiques |
+| Python | ETL, generation donnees |
+| Pandas/NumPy | Manipulation donnees |
+| DuckDB | Requetes analytiques |
 | Power BI / Streamlit | Dashboard |
-| PostgreSQL | Base de données (optionnel) |
+| PostgreSQL | Base de donnees (optionnel) |
 
-## 📁 Structure du Projet
+## Structure du Projet
 
 ```
 Projet1_Dashboard_Ecommerce/
 ├── README.md
+├── index.html                    # Redirection GitHub Pages
+├── dashboard.html                # Dashboard statique
 ├── data/
-│   └── transactions.csv          # Données générées
+│   └── transactions.csv          # Donnees generees
 ├── src/
-│   ├── generate_data.py          # Génération des données
+│   ├── generate_data.py          # Generation des donnees
 │   ├── etl_pipeline.py           # Pipeline ETL
 │   ├── kpi_calculations.py       # Calculs KPIs
 │   ├── rfm_analysis.py           # Analyse RFM
 │   └── dashboard_streamlit.py    # Dashboard interactif
 └── output/
-    └── kpis_report.html          # Rapport généré
+    └── kpis_report.html          # Rapport genere
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
-# 1. Installer les dépendances
+# 1. Installer les dependances
 pip install pandas numpy duckdb faker streamlit plotly
 
-# 2. Générer les données
+# 2. Generer les donnees
 python src/generate_data.py
 
-# 3. Exécuter l'ETL
+# 3. Executer l'ETL
 python src/etl_pipeline.py
 
 # 4. Lancer le dashboard
 streamlit run src/dashboard_streamlit.py
 ```
 
-## ✅ Critères de Réussite
+## Criteres de Reussite
 
 - [ ] Chargement du dashboard < 3 secondes
 - [ ] Actualisation quotidienne automatique
 - [ ] KPIs e-commerce complets et standards
 - [ ] Design professionnel
 
-## ⏱️ Durée & Difficulté
+## Duree & Difficulte
 
-- **Difficulté :** ⭐⭐⭐ Intermédiaire
-- **Durée estimée :** 60 minutes
+- **Difficulte :** Intermediaire
+- **Duree estimee :** 60 minutes
