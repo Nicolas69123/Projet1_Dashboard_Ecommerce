@@ -99,3 +99,13 @@ streamlit run src/dashboard_streamlit.py
 
 - **Difficulte :** Intermediaire
 - **Duree estimee :** 60 minutes
+
+## j'ai ajouter les deux fichiers dont : le etl_pipeline, et les données nettoyer. 
+```bash
+
+# 1. Executer l'ETL
+python src/etl_pipeline_halima.ipynb
+
+# 2. Puis telecharger les donnes nettoye en .csv
+
+```
