@@ -73,16 +73,36 @@ def load_data():
     base_dir = os.path.dirname(__file__)
     data_dir = os.path.join(base_dir, '..', 'data')
 
-    transactions = pd.read_csv(
-        os.path.join(data_dir, 'transactions.csv'),
-        parse_dates=['date']
+    # Charger les donnees nettoyees reelles
+    cleaned_path = os.path.join(data_dir, 'donnees_nettoyees.csv')
+    df = pd.read_csv(
+        cleaned_path,
+        parse_dates=['InvoiceDate']
     )
 
-    # Enrichissement
-    transactions['year_month'] = transactions['date'].dt.to_period('M').astype(str)
-    transactions['weekday'] = transactions['date'].dt.day_name()
+    # Harmonisation du schema pour le dashboard
+    df = df.rename(
+        columns={
+            'InvoiceNo': 'transaction_id',
+            'InvoiceDate': 'date',
+            'CustomerID': 'customer_id',
+            'StockCode': 'product_id',
+            'Description': 'product_name',
+            'Quantity': 'quantity',
+            'UnitPrice': 'unit_price',
+            'TotalAmount': 'total_amount',
+            'Country': 'country',
+        }
+    )
 
-    return transactions
+    # Types et colonnes derivees
+    df['transaction_id'] = df['transaction_id'].astype(str)
+    df['customer_id'] = df['customer_id'].astype(str)
+
+    df['year_month'] = df['date'].dt.to_period('M').astype(str)
+    df['weekday'] = df['date'].dt.day_name()
+
+    return df
 
 
 def calculate_kpis(df: pd.DataFrame) -> dict:
@@ -112,14 +132,8 @@ def show_main_dashboard(df: pd.DataFrame):
         max_value=max_date
     )
 
-    # Filtre categories
-    categories = ['Toutes'] + sorted(df['category'].unique().tolist())
-    selected_category = st.sidebar.selectbox("Categorie", categories)
-
-    # Application des filtres
+    # Application des filtres (uniquement la periode, pas de categorie disponible)
     mask = (df['date'].dt.date >= date_range[0]) & (df['date'].dt.date <= date_range[1])
-    if selected_category != 'Toutes':
-        mask &= df['category'] == selected_category
 
     filtered_df = df[mask]
 
@@ -166,26 +180,9 @@ def show_main_dashboard(df: pd.DataFrame):
         )
         st.plotly_chart(fig, use_container_width=True)
 
-    with col2:
-        st.subheader("CA par Categorie")
-        category_revenue = filtered_df.groupby('category')['total_amount'].sum().reset_index()
-        # Palette de couleurs avec bon contraste
-        colors = ['#0066cc', '#28a745', '#dc3545', '#ffc107', '#17a2b8', '#6c757d']
-        fig = px.pie(
-            category_revenue,
-            values='total_amount',
-            names='category',
-            hole=0.4,
-            color_discrete_sequence=colors
-        )
-        fig.update_layout(
-            height=350,
-            plot_bgcolor='#ffffff',
-            paper_bgcolor='#ffffff',
-            font_color='#212529'
-        )
-        fig.update_traces(textfont_color='#ffffff', textfont_size=12)
-        st.plotly_chart(fig, use_container_width=True)
+    # with col2:
+    #     st.subheader("CA par Categorie")
+    #     st.info("Graphique des categories desactive : aucune categorie disponible dans les donnees reelles.")
 
     # Ligne 3: Analyses detaillees
     col1, col2 = st.columns(2)
