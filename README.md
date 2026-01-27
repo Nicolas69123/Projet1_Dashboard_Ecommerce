@@ -80,6 +80,19 @@ Projet1_Dashboard_Ecommerce/
 
 ## Quick Start
 
+### !!!
+### Des analyses plus approfondies sont réalisées sur la base de données synthétiques. ### En revanche, les analyses du tableau de bord actuel sont alimentées par les données ### du fichier donnees_nettoyees.csv.
+
+```bash
+# 1. Installer les dependances
+pip install pandas numpy duckdb faker streamlit plotly
+
+# 4. Lancer le dashboard
+streamlit run src/dashboard_streamlit.py
+```
+
+### Les commandes suivantes correspondent aux commandes de démarrage du projet initial, ### qui était basé sur des données synthétiques. Le tableau de bord a été transformé et ### n’est plus en mesure d’accepter les données chargées depuis customers.csv, products.### csv et transactions.csv. En revanche, les scripts d’analyse restent fonctionnels
+
 ```bash
 # 1. Installer les dependances
 pip install pandas numpy duckdb faker streamlit plotly
