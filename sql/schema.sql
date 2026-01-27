@@ -15,12 +15,14 @@ CREATE TABLE dim_products (
     unit_price DOUBLE
 );
 
+
 -- Dimension clients
 CREATE TABLE dim_customers (
     customer_id DOUBLE PRIMARY KEY,
     country VARCHAR,
     is_identified BOOLEAN
 );
+
 
 -- Dimension temps
 CREATE TABLE dim_date (
