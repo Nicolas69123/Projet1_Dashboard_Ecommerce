@@ -267,8 +267,8 @@ def main():
     
     # Chemins
     base_dir = os.path.dirname(__file__)
-    data_dir = os.path.join(base_dir, '..', 'data')
-    output_dir = os.path.join(base_dir, '..', 'output')
+    data_dir = os.path.join(base_dir, '..', '..', 'data')
+    output_dir = os.path.join(base_dir, '..', '..', 'output', 'real-data')
     
     # 1. Chargement des données
     df = load_onlineretail_data(data_dir)

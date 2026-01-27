@@ -258,7 +258,7 @@ def show_rfm_page(df: pd.DataFrame):
      # Charger donnees_nettoyees.csv (indépendant de df)
     base_dir = os.path.dirname(__file__)
     data_dir = os.path.join(base_dir, "..", "data")
-    output_dir = os.path.join(base_dir, "..", "output")
+    output_dir = os.path.join(base_dir, "..", "output", "real-data")
 
     cleaned_path = os.path.join(data_dir, "donnees_nettoyees.csv")
      # Data set of donnees nettoyees
@@ -277,7 +277,7 @@ def show_rfm_page(df: pd.DataFrame):
     except FileNotFoundError:
         st.error(
             "Fichiers RFM introuvables. Exécutez d'abord :\n"
-            "`python src/test-modelisation.py` pour générer les fichiers RFM."
+            "`python src/real-data/test-modelisation.py` pour générer les fichiers RFM."
         )
         return
 
@@ -432,7 +432,7 @@ def show_rfm_page(df: pd.DataFrame):
       # Recommandations interactives par segment
     st.subheader("Détails et recommandations par segment")
 
-    # On peut réutiliser la même logique que dans test-modelisation.py
+    # On peut réutiliser la même logique que dans src/real-data/test-modelisation.py
     def get_segment_recommendations(segment: str) -> dict:
         recommendations = {
             "Champions": {
