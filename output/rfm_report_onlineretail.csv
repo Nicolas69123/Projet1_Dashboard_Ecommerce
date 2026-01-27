@@ -1,0 +1,8 @@
+segment,nb_clients,recency_moy,frequency_moy,monetary_moy,monetary_total,pct_clients,pct_revenue
+Champions,960,11.9,10.94,5430.22,5213008.95,22.3,65.6
+Fidèles,764,72.65,4.96,1582.28,1208858.87,17.7,15.2
+Moyens,641,63.03,2.27,886.08,567974.11,14.9,7.1
+Endormis,1069,215.75,1.1,439.82,470164.63,24.8,5.9
+À risque,221,147.78,2.37,985.03,217691.4,5.1,2.7
+Occasionnels,336,52.07,1.14,413.89,139067.69,7.8,1.8
+Nouveaux prometteurs,320,17.74,1.23,401.86,128595.64,7.4,1.6
