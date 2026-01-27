@@ -96,18 +96,8 @@ def calculate_kpis(df: pd.DataFrame) -> dict:
     }
 
 
-def main():
-    # Header
-    st.title("Dashboard E-commerce")
-    st.markdown("---")
-
-    # Chargement des donnees
-    try:
-        df = load_data()
-    except FileNotFoundError:
-        st.error("Donnees non trouvees. Executez d'abord: python src/generate_data.py")
-        st.stop()
-
+def show_main_dashboard(df: pd.DataFrame):
+    """Page principale : dashboard e-commerce."""
     # Sidebar - Filtres
     st.sidebar.header("Filtres")
 
@@ -259,6 +249,290 @@ def main():
         f"Dashboard genere le {datetime.now().strftime('%d/%m/%Y a %H:%M')} | "
         f"Donnees: {len(filtered_df):,} transactions"
     )
+
+
+def show_rfm_page(df: pd.DataFrame):
+    """Page secondaire : placeholder pour l'analyse RFM."""
+    st.header("Analyse RFM")
+
+     # Charger donnees_nettoyees.csv (indépendant de df)
+    base_dir = os.path.dirname(__file__)
+    data_dir = os.path.join(base_dir, "..", "data")
+    output_dir = os.path.join(base_dir, "..", "output", "real-data")
+
+    cleaned_path = os.path.join(data_dir, "donnees_nettoyees.csv")
+     # Data set of donnees nettoyees
+    try:
+        df_clean = pd.read_csv(cleaned_path, parse_dates=["InvoiceDate"])
+    except FileNotFoundError:
+        st.error("Fichier donnees_nettoyees.csv introuvable. Vérifiez le dossier data/.")
+        return
+
+        # 2) Résultats RFM agrégés
+    analysis_path = os.path.join(output_dir, "rfm_analysis_onlineretail.csv")
+    report_path = os.path.join(output_dir, "rfm_report_onlineretail.csv")
+    try:
+        rfm = pd.read_csv(analysis_path)
+        report = pd.read_csv(report_path)
+    except FileNotFoundError:
+        st.error(
+            "Fichiers RFM introuvables. Exécutez d'abord :\n"
+            "`python src/real-data/test-modelisation.py` pour générer les fichiers RFM."
+        )
+        return
+
+    st.markdown(
+        """ Cette page affiche l'analyse RFM basée sur vos transactions.
+
+        - R (Récence): Jours depuis le dernier achat  
+        - F (Fréquence): Nombre de transactions (invoices)  
+        - M (Montant): Total dépensé
+        """
+    )
+
+# ========= 1) Top 10 clients par fréquence + panier moyen =========
+    st.subheader("Clients les plus fréquents (Top 10)")
+
+    top_freq = (
+        rfm
+        .copy()
+        .assign(avg_basket=lambda d: d["monetary"] / d["frequency"])
+        .sort_values("frequency", ascending=False)
+        .head(10)
+    )
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("**Top 10 par fréquence d'achat**")
+        st.dataframe(
+            top_freq[["customer_id", "frequency", "monetary", "avg_basket"]],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    with col2:
+        st.markdown("**Fréquence vs panier moyen (Top 10)**")
+        fig_freq = px.bar(
+            top_freq,
+            x="customer_id",
+            y="frequency",
+            hover_data=["avg_basket", "monetary"],
+            labels={"customer_id": "Client", "frequency": "Nombre de transactions"},
+        )
+        fig_freq.update_layout(height=350)
+        st.plotly_chart(fig_freq, use_container_width=True)
+
+    st.markdown("---")
+
+     # ========= 2) Top 10 clients par montant total =========
+    st.subheader("Top 10 clients par montant total dépensé")
+
+    top_monetary = (
+        rfm
+        .sort_values("monetary", ascending=False)
+        .head(10)
+    )
+
+    col3, col4 = st.columns(2)
+    with col3:
+        st.dataframe(
+            top_monetary[["customer_id", "monetary", "frequency", "recency"]],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+    with col4:
+        fig_m = px.bar(
+            top_monetary,
+            x="customer_id",
+            y="monetary",
+            labels={"customer_id": "Client", "monetary": "Montant total"},
+        )
+        fig_m.update_layout(height=350)
+        st.plotly_chart(fig_m, use_container_width=True)
+
+    st.markdown("---")
+
+     # ========= 3) Clients avec la récence la plus courte =========
+    st.subheader("Clients les plus récents (récence la plus courte)")
+
+    most_recent = (
+        rfm
+        .sort_values("recency", ascending=True)  # plus petit = plus récent
+        .head(10)
+    )
+    most_recent = most_recent[["customer_id", "recency", "monetary", "frequency", "segment"]]
+
+    st.dataframe(
+        most_recent,
+        use_container_width=True,
+        hide_index=True,
+    )
+
+    st.markdown(
+        "_Ces clients ont acheté très récemment. La colonne `monetary` montre leur investissement total._"
+    )
+
+    st.markdown("---")
+
+    # ========= 4) Stats SHare per segment  =========
+    st.subheader("Répartition des clients par segment (en nombre de clients)")
+
+    fig_seg_pie = px.pie(
+        report,
+        values="nb_clients",
+        names="segment",
+        hole=0.4,  # donut style; remove if you prefer full pie
+        labels={"segment": "Segment", "nb_clients": "Nombre de clients"},
+    )
+
+    fig_seg_pie.update_traces(textinfo="percent+label")
+    fig_seg_pie.update_layout(
+        height=400,
+        showlegend=True,
+        legend_title_text="Segment",
+    )
+
+    st.plotly_chart(fig_seg_pie, use_container_width=True)
+    # ========= 4) Stats par segment + recommandations interactives =========
+    st.subheader("Performance par segment RFM")
+
+    # Graphique barres : CA total par segment
+    col5, col6 = st.columns(2)
+    with col5:
+        fig_seg_rev = px.bar(
+            report,
+            x="segment",
+            y="monetary_total",
+            hover_data=["nb_clients", "pct_clients", "pct_revenue"],
+            labels={
+                "segment": "Segment",
+                "monetary_total": "CA total",
+            },
+        )
+        fig_seg_rev.update_layout(height=350)
+        st.plotly_chart(fig_seg_rev, use_container_width=True)
+
+    with col6:
+        fig_seg_share = px.bar(
+            report,
+            x="segment",
+            y="pct_revenue",
+            hover_data=["pct_clients"],
+            labels={
+                "segment": "Segment",
+                "pct_revenue": "% du CA total",
+            },
+        )
+        fig_seg_share.update_layout(height=350)
+        st.plotly_chart(fig_seg_share, use_container_width=True)
+
+    st.markdown("---")
+
+      # Recommandations interactives par segment
+    st.subheader("Détails et recommandations par segment")
+
+    # On peut réutiliser la même logique que dans src/real-data/test-modelisation.py
+    def get_segment_recommendations(segment: str) -> dict:
+        recommendations = {
+            "Champions": {
+                "description": "Vos meilleurs clients",
+                "action": "Récompenser avec un programme VIP, early access aux nouveautés",
+                "retention_priority": "Haute",
+            },
+            "Fidèles": {
+                "description": "Clients réguliers et engagés",
+                "action": "Upselling, programme de fidélité, parrainage",
+                "retention_priority": "Haute",
+            },
+            "Nouveaux prometteurs": {
+                "description": "Nouveaux clients à fort potentiel",
+                "action": "Onboarding personnalisé, offres de bienvenue",
+                "retention_priority": "Moyenne",
+            },
+            "À risque": {
+                "description": "Bons clients qui s'éloignent",
+                "action": "Campagne de réactivation urgente, offres spéciales",
+                "retention_priority": "Critique",
+            },
+            "Endormis": {
+                "description": "Clients inactifs depuis longtemps",
+                "action": "Campagne win-back, enquête satisfaction",
+                "retention_priority": "Basse",
+            },
+            "Occasionnels": {
+                "description": "Clients ponctuels",
+                "action": "Incentives pour augmenter la fréquence",
+                "retention_priority": "Moyenne",
+            },
+            "Moyens": {
+                "description": "Clients standards",
+                "action": "Personnalisation pour améliorer l'engagement",
+                "retention_priority": "Moyenne",
+            },
+        }
+        return recommendations.get(segment, {})
+
+    segments = sorted(rfm["segment"].unique())
+    selected_segment = st.selectbox("Choisir un segment", segments)
+
+    seg_df = rfm[rfm["segment"] == selected_segment]
+    reco = get_segment_recommendations(selected_segment)
+
+    col7, col8 = st.columns(2)
+    with col7:
+        st.markdown(f"### Segment : **{selected_segment}**")
+        st.metric("Nombre de clients", f"{len(seg_df):,}")
+        st.metric("CA total", f"{seg_df['monetary'].sum():,.0f}")
+        st.metric("CA moyen / client", f"{seg_df['monetary'].mean():,.0f}")
+    with col8:
+        st.markdown("**Description**")
+        st.write(reco.get("description", "N/A"))
+        st.markdown("**Action recommandée**")
+        st.write(reco.get("action", "N/A"))
+        st.markdown("**Priorité de rétention**")
+        st.write(reco.get("retention_priority", "N/A"))
+
+    st.markdown("##### Clients du segment sélectionné (échantillon)")
+    st.dataframe(
+        seg_df[["customer_id", "recency", "frequency", "monetary"]].head(20),
+        use_container_width=True,
+        hide_index=True,
+    )
+
+   # Lignes de test des données nettoyées
+    # st.subheader("Aperçu des données nettoyées")
+    # st.dataframe(df_clean.head(), use_container_width=True, hide_index=True)
+
+    # st.write(f"Nombre de lignes : {len(df_clean):,}")
+    # st.write("Colonnes disponibles :", ", ".join(df_clean.columns))
+
+
+
+
+def main():
+    # Header
+    st.title("Dashboard E-commerce")
+    st.markdown("---")
+
+    # Chargement des donnees
+    try:
+        df = load_data()
+    except FileNotFoundError:
+        st.error("Donnees non trouvees. Executez d'abord: python src/generate_data.py")
+        st.stop()
+
+    # Navigation multi-page
+    st.sidebar.title("Navigation")
+    page = st.sidebar.selectbox(
+        "Page",
+        ["Dashboard principal", "Analyse RFM"]
+    )
+
+    if page == "Dashboard principal":
+        show_main_dashboard(df)
+    elif page == "Analyse RFM":
+        show_rfm_page(df)
 
 
 if __name__ == "__main__":

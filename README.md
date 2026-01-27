@@ -67,9 +67,15 @@ Projet1_Dashboard_Ecommerce/
 │   ├── etl_pipeline.py           # Pipeline ETL
 │   ├── kpi_calculations.py       # Calculs KPIs
 │   ├── rfm_analysis.py           # Analyse RFM
-│   └── dashboard_streamlit.py    # Dashboard interactif
+│   ├── dashboard_streamlit.py    # Dashboard interactif
+│   └── real-data/                # Analyses RFM donnees reelles
+│       ├── test-modelisation.py  # Script RFM Online Retail
+│       └── frm_modelisation.md   # Documentation RFM
 └── output/
-    └── kpis_report.html          # Rapport genere
+    ├── kpis_report.html          # Rapport genere
+    └── real-data/                # Resultats RFM donnees reelles
+        ├── rfm_analysis_onlineretail.csv
+        └── rfm_report_onlineretail.csv
 ```
 
 ## Quick Start
