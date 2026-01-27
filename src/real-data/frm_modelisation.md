@@ -81,3 +81,4 @@ The Streamlit dashboard (`src/dashboard_streamlit.py`) loads the generated RFM f
 
 Files in `src/real-data/` and `output/real-data/` work with the **latest cleaned Online Retail dataset** (`donnees_nettoyees.csv`). This convention helps separate real data analyses from synthetic/test data analyses.
 
+
